@@ -1,10 +1,13 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
 
 const app = express();
 
 // express middleware
 app.use(express.urlencoded({extended: false}));
 app.use(express.json());
+
+const saltRounds = 10; // bcrypt salt rounds
 
 // temp database
 const db = {
@@ -25,6 +28,13 @@ const db = {
             entries: 0,
             joined: new Date(),
         }
+    ],
+    login: [
+        {
+            id: '987',
+            hash: '',
+            email: 'john@gmail.com',
+        }
     ]
 }
 
@@ -35,6 +45,11 @@ app.get('/', (req, res) => {
 
 // SIGN IN
 app.post('/signin', (req, res) => {
+    // bcrypt compare password and hash values
+    bcrypt.compare("superstar", '$2b$10$Mh.E4bNY/DYfVLWr8VF/iOmpO1zk1QK17AoYGwW04cn4q1.s75602', function(err, result) {
+        console.log('first guess', result);
+    });
+
     if (req.body.email === db.users[0].email &&
         req.body.password === db.users[0].password) {
             res.json('sign in successful');
@@ -46,6 +61,13 @@ app.post('/signin', (req, res) => {
 // REGISTER
 app.post('/register', (req, res) => {
     const { email, name, password } = req.body;
+
+    // bcrypt hash password string
+    bcrypt.hash(password, saltRounds, function(err, hash) {
+        // Store hash in your password DB.
+        console.log(hash);
+    });
+
     db.users.push({
         id: '3',
         name: name,
@@ -55,6 +77,37 @@ app.post('/register', (req, res) => {
         joined: new Date(),
     });
     res.json(db.users[db.users.length-1]);
+});
+
+// PROFILE
+app.get('/profile/:id', (req, res) => {
+    const { id } = req.params;
+    let found = false;
+    db.users.forEach(user => {
+        if (user.id === id) {
+            found = true;
+            return res.json(user);
+        }
+    });
+    if (!found) {
+        res.status(404).json('no user found with that id');
+    }
+});
+
+// IMAGE
+app.post('/image', (req, res) => {
+    const { id } = req.body;
+    let found = false;
+    db.users.forEach(user => {
+        if (user.id === id) {
+            found = true;
+            user.entries++;
+            return res.json(user.entries);
+        }
+    });
+    if (!found) {
+        res.status(404).json('no user found with that id');
+    }
 });
 
 app.listen(3000, () => {
