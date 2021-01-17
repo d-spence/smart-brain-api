@@ -9,8 +9,6 @@ app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cors());
 
-const saltRounds = 10; // bcrypt salt rounds
-
 // temp database
 const db = {
     users: [
@@ -58,6 +56,7 @@ app.post('/register', (req, res) => {
     const { email, name, password } = req.body;
 
     // bcrypt hash password string
+    const saltRounds = 10; // bcrypt cost factor
     bcrypt.hash(password, saltRounds, function(err, hash) {
         // Store hash in your password DB.
         console.log(hash);
