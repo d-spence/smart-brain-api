@@ -4,7 +4,7 @@ const cors = require('cors');
 
 const app = express();
 
-// express middleware
+// Express middleware
 app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cors());
@@ -45,7 +45,7 @@ app.post('/signin', (req, res) => {
 
     if (req.body.email === db.users[0].email &&
         req.body.password === db.users[0].password) {
-            res.json('success');
+            res.json(db.users[0]);
     } else {
         res.status(400).json('sign in error');
     }
@@ -89,7 +89,7 @@ app.get('/profile/:id', (req, res) => {
 });
 
 // IMAGE
-app.post('/image', (req, res) => {
+app.put('/image', (req, res) => {
     const { id } = req.body;
     let found = false;
     db.users.forEach(user => {
@@ -104,6 +104,7 @@ app.post('/image', (req, res) => {
     }
 });
 
+// Start Server
 app.listen(3001, () => {
     console.log("App is running on port 3001");
 });
