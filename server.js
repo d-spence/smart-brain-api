@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
-const knex = require('knex')
+const knex = require('knex');
 
 // Connect to database
 const db = knex({
@@ -80,13 +80,18 @@ app.post('/register', (req, res) => {
     });
 
     // Insert user info into db users table
-    db('users').insert({
-        email: email,
-        name: name,
-        joined: new Date()
-    }).then(console.log);
-
-    res.json(db.users[db.users.length-1]);
+    db('users')
+        .returning('*')
+        .insert({
+            email: email,
+            name: name,
+            joined: new Date()
+        })
+        .then(user => {
+            // respond with user json data
+            res.json(user[0]);
+        })
+        .catch(err => res.status(400).json('Unable to register'));
 });
 
 // PROFILE
