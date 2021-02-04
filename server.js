@@ -3,7 +3,8 @@ const bcrypt = require('bcrypt');
 const cors = require('cors');
 const knex = require('knex')
 
-const postgres = knex({
+// Connect to database
+const db = knex({
     client: 'pg',
     connection: {
         host : '127.0.0.1',
@@ -13,9 +14,11 @@ const postgres = knex({
     }
 });
 
-console.log(postgres.select('*').from('users'));
+db.select('*').from('users').then(data => {
+    console.log(data);
+});
 
-// Express server app instantiation
+// Express server app
 const app = express();
 
 // Express middleware
@@ -76,14 +79,13 @@ app.post('/register', (req, res) => {
         console.log(hash);
     });
 
-    db.users.push({
-        id: '3',
-        name: name,
+    // Insert user info into db users table
+    db('users').insert({
         email: email,
-        password: password,
-        entries: 0,
-        joined: new Date(),
-    });
+        name: name,
+        joined: new Date()
+    }).then(console.log);
+
     res.json(db.users[db.users.length-1]);
 });
 
@@ -120,5 +122,5 @@ app.put('/image', (req, res) => {
 
 // Start Server
 app.listen(3001, () => {
-    console.log("App is running on port 3001");
+    console.log("Server is running on port 3001");
 });
