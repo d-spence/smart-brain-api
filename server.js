@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const knex = require('knex');
+const { response } = require('express');
 
 // Connect to database
 const db = knex({
@@ -88,17 +89,13 @@ app.get('/profile/:id', (req, res) => {
 // IMAGE
 app.put('/image', (req, res) => {
     const { id } = req.body;
-    let found = false;
-    db.users.forEach(user => {
-        if (user.id === id) {
-            found = true;
-            user.entries++;
-            return res.json(user.entries);
-        }
-    });
-    if (!found) {
-        res.status(404).json('no user found with that id');
-    }
+    db('users').where('id', '=', id)
+        .increment('entries', 1)
+        .returning('entries')
+        .then(entries => {
+            res.json(entries[0]);
+        })
+        .catch(err => res.status(400).json('Unable to get entries'));
 });
 
 // Start Server
