@@ -14,10 +14,6 @@ const db = knex({
     }
 });
 
-db.select('*').from('users').then(data => {
-    console.log(data);
-});
-
 // Express server app
 const app = express();
 
@@ -26,27 +22,7 @@ app.use(express.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cors());
 
-// temp database
-// const db = {
-//     users: [
-//         {
-//             id: '1',
-//             name: 'John',
-//             email: 'john@gmail.com',
-//             password: 'testing123',
-//             entries: 0,
-//             joined: new Date(),
-//         },
-//         {
-//             id: '2',
-//             name: 'Jane',
-//             email: 'jane@outlook.com',
-//             password: 'apples',
-//             entries: 0,
-//             joined: new Date(),
-//         }
-//     ]
-// }
+//================================== ROUTES ====================================
 
 // ROOT
 app.get('/', (req, res) => {
@@ -97,16 +73,16 @@ app.post('/register', (req, res) => {
 // PROFILE
 app.get('/profile/:id', (req, res) => {
     const { id } = req.params;
-    let found = false;
-    db.users.forEach(user => {
-        if (user.id === id) {
-            found = true;
-            return res.json(user);
+    db.select('*').from('users').where({
+        id: id
+    }).then(user => {
+        if (user.length) {
+            res.json(user[0]);
+        } else {
+            res.status(400).json('Not found');
         }
-    });
-    if (!found) {
-        res.status(404).json('no user found with that id');
-    }
+    })
+    .catch(err => res.status(400).json('Error getting user'));
 });
 
 // IMAGE
