@@ -1,7 +1,21 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
+const knex = require('knex')
 
+const postgres = knex({
+    client: 'pg',
+    connection: {
+        host : '127.0.0.1',
+        user : 'postgres',
+        password : 'admin',
+        database : 'smart-brain'
+    }
+});
+
+console.log(postgres.select('*').from('users'));
+
+// Express server app instantiation
 const app = express();
 
 // Express middleware
@@ -10,26 +24,26 @@ app.use(express.json());
 app.use(cors());
 
 // temp database
-const db = {
-    users: [
-        {
-            id: '1',
-            name: 'John',
-            email: 'john@gmail.com',
-            password: 'testing123',
-            entries: 0,
-            joined: new Date(),
-        },
-        {
-            id: '2',
-            name: 'Jane',
-            email: 'jane@outlook.com',
-            password: 'apples',
-            entries: 0,
-            joined: new Date(),
-        }
-    ]
-}
+// const db = {
+//     users: [
+//         {
+//             id: '1',
+//             name: 'John',
+//             email: 'john@gmail.com',
+//             password: 'testing123',
+//             entries: 0,
+//             joined: new Date(),
+//         },
+//         {
+//             id: '2',
+//             name: 'Jane',
+//             email: 'jane@outlook.com',
+//             password: 'apples',
+//             entries: 0,
+//             joined: new Date(),
+//         }
+//     ]
+// }
 
 // ROOT
 app.get('/', (req, res) => {
@@ -108,14 +122,3 @@ app.put('/image', (req, res) => {
 app.listen(3001, () => {
     console.log("App is running on port 3001");
 });
-
-
-/*
-ROUTES/END POINTS
-/ --> res = getting root /
-/signin --> POST = success/fail
-/register --> POST = user (obj)
-/profile/:userid --> GET = user (obj)
-/image --> PUT --> user (obj) count var
-
-*/
