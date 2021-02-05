@@ -27,22 +27,28 @@ app.use(cors());
 
 // ROOT
 app.get('/', (req, res) => {
-    res.send(db.users);
+    res.send('Success');
 });
 
 // SIGN IN
 app.post('/signin', (req, res) => {
-    // bcrypt compare password and hash values
-    bcrypt.compare(req.body.password, db.users[0].password, function(err, result) {
-        console.log('password hash match: ', result);
-    });
-
-    if (req.body.email === db.users[0].email &&
-        req.body.password === db.users[0].password) {
-            res.json(db.users[0]);
-    } else {
-        res.status(400).json('sign in error');
-    }
+    db.select('email', 'hash').from('login')
+        .where('email', '=', req.body.email)
+        .then(data => {
+            // bcrypt compare password and hash values
+            const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+            if (isValid) {
+                return db.select('*').from('users')
+                    .where('email', '=', req.body.email)
+                    .then(user => {
+                        res.json(user[0]);
+                    })
+                    .catch(err => res.status(400).json('Unable to get user'));
+            } else {
+                res.status(400).json('Wrong credentials');
+            }
+        })
+        .catch(err => res.status(400).json('Wrong credentials'));
 });
 
 // REGISTER
@@ -51,24 +57,34 @@ app.post('/register', (req, res) => {
 
     // bcrypt hash password string
     const saltRounds = 10; // bcrypt cost factor
-    bcrypt.hash(password, saltRounds, function(err, hash) {
-        // Store hash in your password DB.
-        console.log(hash);
-    });
+    const hash = bcrypt.hashSync(password, saltRounds);
 
-    // Insert user info into db users table
-    db('users')
-        .returning('*')
-        .insert({
-            email: email,
-            name: name,
-            joined: new Date()
+    // Create a transaction (2 actions)
+    db.transaction(trx => {
+        trx.insert({
+            hash: hash,
+            email: email
         })
-        .then(user => {
-            // respond with user json data
-            res.json(user[0]);
+        .into('login')
+        .returning('email')
+        .then(loginEmail => {
+            // Insert user info into db users table
+            return trx('users')
+                .returning('*')
+                .insert({
+                    email: loginEmail[0],
+                    name: name,
+                    joined: new Date()
+                })
+                .then(user => {
+                    // respond with user json data
+                    res.json(user[0]);
+                })
         })
-        .catch(err => res.status(400).json('Unable to register'));
+        .then(trx.commit)
+        .catch(trx.rollback);
+    })
+    .catch(err => res.status(400).json('Unable to register'));
 });
 
 // PROFILE
