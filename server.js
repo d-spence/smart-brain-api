@@ -30,10 +30,11 @@ app.use(cors());
 
 //================================== ROUTES ====================================
 app.get('/', (req, res) => { res.send('Success') });
-app.post('/signin', (req, res) => { signin.handleSignIn(req, res, db, bcrypt)});
+app.post('/signin', (req, res) => { signin.handleSignIn(req, res, db, bcrypt) });
 app.post('/register', (req, res) => { register.handleRegister(req, res, db, bcrypt) });
 app.get('/profile/:id', (req, res) => { profile.handleProfileGet(req, res, db) });
 app.put('/image', (req, res) => { image.handleImagePut(req, res, db) });
+app.post('/imageurl', (req, res) => { image.handleApiCall(req, res) });
 
 // Start Server
 app.listen(3001, () => {
