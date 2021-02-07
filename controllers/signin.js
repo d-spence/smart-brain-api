@@ -1,13 +1,21 @@
 // Handle signin route behavior
 const handleSignIn = (req, res, db, bcrypt) => {
+    const { email, password } = req.body;
+
+    // Validate request
+    if (!email || !password) {
+        return res.status(400).json('Incorrect form submission');
+    }
+
+    // Attempt sign in with provided user credentials
     db.select('email', 'hash').from('login')
-        .where('email', '=', req.body.email)
+        .where('email', '=', email)
         .then(data => {
             // bcrypt compare password and hash values
-            const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+            const isValid = bcrypt.compareSync(password, data[0].hash);
             if (isValid) {
                 return db.select('*').from('users')
-                    .where('email', '=', req.body.email)
+                    .where('email', '=', email)
                     .then(user => {
                         res.json(user[0]);
                     })
