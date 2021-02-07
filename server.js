@@ -36,8 +36,13 @@ app.get('/profile/:id', (req, res) => { profile.handleProfileGet(req, res, db) }
 app.put('/image', (req, res) => { image.handleImagePut(req, res, db) });
 app.post('/imageurl', (req, res) => { image.handleApiCall(req, res) });
 
+// Get port from env variable
+const PORT = process.env.PORT;
+if (PORT == null || PORT == "") {
+    PORT = 3001; // default if no port set
+}
+
 // Start Server
-const PORT = process.env.PORT; // get port from env variable
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
